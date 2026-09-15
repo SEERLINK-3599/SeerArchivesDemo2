@@ -1,0 +1,20 @@
+/* The opening is independent of saved themes; never mutate user-data. */
+html.intro-pending{overflow:hidden}html.intro-pending .shell{pointer-events:none;visibility:hidden}
+html.intro-pending .shell *,html.intro-pending .shell *::before,html.intro-pending .shell *::after{animation:none!important;transition:none!important}
+html.opening-managed .hero-content,html.opening-managed .view,html.opening-managed .card{animation:none!important}
+.opening{position:fixed;inset:0;z-index:200;background:#21192b;isolation:isolate;overflow:hidden}
+.opening-backdrop{position:absolute;inset:-40px;background:#81446e url('intro/poster.jpg') center/cover;filter:blur(35px) brightness(.65);z-index:-1}
+.opening video{width:100%;height:100%;display:block;object-fit:cover;object-position:center}
+.opening-controls{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:28px;right:28px;display:flex;justify-content:space-between;align-items:center;gap:20px;color:#f2f5ff}
+.opening-status{font-size:12px;letter-spacing:.12em;text-shadow:0 1px 5px #000;display:flex;gap:12px;align-items:center}
+.opening-progress{width:72px;height:3px;overflow:hidden;background:#ffffff30;border-radius:4px}.opening-progress i{display:block;width:100%;height:100%;background:var(--yellow);transform:scaleX(0);transform-origin:left}
+.opening-actions{display:flex;gap:10px}.opening-actions button{font-size:13px;border-color:#ffffff50;padding:9px 16px;background:#101824c9;color:#f5f7ff;backdrop-filter:blur(12px);border-radius:12px;min-height:42px}.opening-actions button:hover{background:#243b53}.opening-actions button:focus-visible{outline:2px solid var(--yellow);outline-offset:4px}
+.opening[data-phase="transition"] .opening-controls{visibility:hidden}
+.opening-frame{position:fixed;inset:0;width:100%;height:100%;z-index:201;pointer-events:none;overflow:visible}
+.opening-frame{display:grid;grid-auto-rows:var(--tile-size);overflow:hidden}.opening-tile{display:block;opacity:0;background:#0b1019;border:1px solid #46688d88;transform-origin:center}.opening-tile.tile-blue{background:#1c4774;border-color:#579fffaa}.opening-tile.tile-yellow{background:#bbc94a;border-color:#eaff35aa}
+
+.hero-index{z-index:2}
+.opening-flash{position:fixed;inset:0;z-index:202;pointer-events:none;display:grid;place-items:center;overflow:hidden}
+.opening-flash span{font-family:Bahnschrift,Consolas,monospace;font-size:clamp(22px,6vw,82px);font-weight:750;letter-spacing:.12em;color:var(--yellow);text-shadow:0 0 24px #579fff55;white-space:nowrap;opacity:0;transform:translateY(7px)}
+@media(max-width:700px){.opening-controls{left:18px;right:18px;bottom:22px;align-items:end}.opening-status{font-size:10px;letter-spacing:.03em;flex-direction:column;align-items:start;gap:7px}.opening-actions{gap:6px}.opening-actions button{padding:9px 12px;font-size:12px}.opening-frame path{stroke-width:15}.opening-frame .opening-accent{stroke-width:2}}
+@media(prefers-reduced-motion:reduce){.opening,.opening-frame,.opening-flash{display:none!important}}

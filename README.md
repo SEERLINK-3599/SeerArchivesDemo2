@@ -1,3 +1,14 @@
+## 赛尔档案馆静态演示
+
+GitHub Pages 发布目录为 [`docs/`](docs/)。在仓库 **Settings → Pages** 中选择 `Deploy from a branch`、分支 `main`、目录 `/docs`。
+
+- 演示入口：发布完成后访问 `https://SEERLINK-3599.github.io/SeerArchivesDemo2/`
+- 链接密码：`328454`
+- 本目录包含开场动画、密集方格转场、BGM、3D 壁纸插画和内置兜底图。
+- 这是纯静态演示；完整素材索引、主题持久保存和真实上传仍需本地服务。
+
+静态文件由 Image Vault 项目生成，详情见工作区的 `outputs/image-vault/docs/外部托管与DNS建议.md`。
+
 <div align="center">
     <img  width=180 src="https://cdn.jsdelivr.net/gh/sun0225SUN/Awesome-Love-Code/assets/logo.png"/>
     <h1>✨Awesome Love Code✨<br>❤️表白代码收藏馆❤️</h1> 

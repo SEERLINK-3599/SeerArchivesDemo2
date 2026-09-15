@@ -1,0 +1,1 @@
+window.BGM_DEFAULTS = {"volume":0.35,"maxTracks":10,"tracks":[{"id":"builtin-going-home","title":"Going Home · 回家 — Kenny G","url":"bgm/going-home.mp3","enabled":true}]};

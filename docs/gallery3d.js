@@ -1,0 +1,46 @@
+(() => {
+  'use strict';
+  const data=window.GALLERY3D_DATA,view=document.querySelector('#gallery3d-view'),stage=document.querySelector('#g3-stage'),deck=document.querySelector('#g3-deck'),rail=document.querySelector('#g3-rail');
+  const q=id=>document.getElementById(id),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const bundled=new Map(data.images.map(i=>[i.id,i])),nodes=new Map();let list=data.images,index=0,active=false,initialized=false,autoTimer=null,lastWheel=0,wheelAmount=0,drag=null,suppressClick=false;
+  const title=i=>typeof theme!=='undefined'?(theme.items[i.id]?.title||i.title):i.title;
+  const src=i=>bundled.get(i.id)?.src||('file:'===location.protocol?window.SeerFallback.url:'/library/'+i.id);
+  const number=n=>String(n+1).padStart(3,'0');
+  function setAuto(on){clearInterval(autoTimer);autoTimer=null;if(on&&!reduced.matches&&!document.body.classList.contains('motion-off'))autoTimer=setInterval(()=>choose((index+1)%list.length,false),2400);q('g3-auto').textContent=autoTimer?'暂停自动浏览':'自动浏览';q('g3-auto').setAttribute('aria-pressed',String(Boolean(autoTimer)));}
+  function draw(offset=0){
+    const width=stage.clientWidth,small=width<600,cardWidth=small?Math.min(235,width*.67):Math.min(370,width*.34),spacing=small?65:115,vertical=small?37:53;
+    deck.style.setProperty('--g3-card-width',cardWidth+'px');const wanted=new Set();
+    for(let n=Math.max(0,index-6);n<=Math.min(list.length-1,index+7);n++){
+      const item=list[n],d=n-index+offset;wanted.add(item.id);let node=nodes.get(item.id);
+      if(!node){node=document.createElement('button');node.type='button';node.className='g3-card';node.dataset.id=item.id;const image=document.createElement('img');image.src=src(item);image.alt=title(item);image.draggable=false;const caption=document.createElement('span');caption.className='g3-card-caption';const ordinal=document.createElement('span'),name=document.createElement('span');ordinal.textContent=number(n);name.textContent=title(item);caption.append(ordinal,name);node.append(image,caption);node.onclick=()=>{if(suppressClick)return;const position=list.findIndex(i=>i.id===item.id);if(position===index)openPreview();else choose(position);};deck.append(node);nodes.set(item.id,node);}
+      const current=n===index,depth=-Math.abs(d)*66+(current?115:0),x=d*spacing+(current?20:0),y=-d*vertical+(current?-8:10);
+      node.style.transform='translate3d('+x+'px,'+y+'px,'+depth+'px) rotateX('+(current?10:22)+'deg) rotateY('+(current?-12:-25)+'deg) rotateZ('+(current?-8:-13)+'deg)';
+      node.style.opacity=String(Math.max(0,1-Math.abs(d)*.13));node.style.zIndex=String(20-Math.abs(n-index));node.classList.toggle('active',current);node.setAttribute('aria-label',number(n)+' '+title(item)+(current?'，打开大图':'，选中此图'));node.setAttribute('aria-pressed',String(current));node.tabIndex=current?0:-1;
+    }
+    for(const[id,node]of nodes)if(!wanted.has(id)){node.remove();nodes.delete(id);}
+    window.SeerFallback.watchImages();
+  }
+  function updateInfo(){
+    const item=list[index];q('g3-title').textContent=title(item);q('g3-path').textContent=item.relative;q('g3-counter').textContent=number(index);q('g3-total').textContent='/ '+String(list.length).padStart(3,'0');q('g3-status').textContent=number(index)+' / '+list.length+' · '+title(item);q('g3-position').max=String(list.length-1);q('g3-position').value=String(index);q('g3-prev').disabled=index===0;q('g3-next').disabled=index===list.length-1;
+    rail.replaceChildren();const label=document.createElement('span');label.className='g3-rail-label';label.textContent='ARCHIVE';rail.append(label);for(let n=Math.max(0,index-3);n<=Math.min(list.length-1,index+3);n++){const b=document.createElement('button');b.textContent=number(n);b.setAttribute('aria-label','选择第 '+(n+1)+' 张');b.setAttribute('aria-current',String(n===index));b.onclick=()=>choose(n);rail.append(b);}
+    q('g3-thumbs').querySelectorAll('button').forEach(b=>{const on=b.dataset.id===item.id;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
+  }
+  function choose(n,manual=true){if(!list.length)return;if(manual)setAuto(false);index=Math.max(0,Math.min(list.length-1,n));if(!q('g3-thumbs').querySelector('[data-id="'+list[index].id+'"]'))thumbnails();draw();updateInfo();}
+  function thumbnails(){q('g3-thumbs').replaceChildren();const start=Math.max(0,Math.min(index-4,list.length-10));for(const item of list.slice(start,start+10)){const b=document.createElement('button');b.dataset.id=item.id;b.setAttribute('aria-label',title(item));const img=document.createElement('img');img.src=src(item);img.alt='';img.loading='lazy';const caption=document.createElement('span');caption.textContent=number(list.indexOf(item));b.append(img,caption);b.onclick=()=>{choose(list.indexOf(item));thumbnails();};q('g3-thumbs').append(b);}window.SeerFallback.watchImages();}
+  function mode(){setAuto(false);list=q('g3-source').value==='bundled'?data.images:items.filter(i=>i.categoryId===data.categoryId&&i.media==='图片');if(!list.length){q('g3-source').value='bundled';list=data.images;}nodes.forEach(n=>n.remove());nodes.clear();index=0;thumbnails();choose(0);}
+  function openPreview(){const item=list[index];q('g3-preview-title').textContent=title(item);q('g3-preview-image').src=src(item);q('g3-preview-image').alt=title(item);q('g3-preview-path').textContent=item.relative+(bundled.has(item.id)?' · 内置原图':'');window.SeerFallback.watchImages();if(!q('g3-preview').open){setAuto(false);openModal(q('g3-preview'));}}
+  function open(categoryId){if(categoryId!==data.categoryId){toast('3D 浏览目前仅支持【壁纸插画】');return false;}showView('gallery3d');initialized=true;mode();stage.focus({preventScroll:true});return true;}
+  document.addEventListener('click',e=>{const button=e.target.closest('[data-gallery3d-enter]');if(button)open(button.dataset.gallery3dEnter);});
+  window.addEventListener('seer:view-change',e=>{active=e.detail==='gallery3d';if(active&&!initialized){initialized=true;mode();stage.focus({preventScroll:true});}if(!active){setAuto(false);drag=null;stage.classList.remove('dragging');if(q('g3-preview').open)q('g3-preview').close();}});
+  q('g3-source').onchange=mode;q('g3-back').onclick=()=>setCategory(data.categoryId);q('g3-prev').onclick=()=>{choose(index-1);thumbnails();};q('g3-next').onclick=()=>{choose(index+1);thumbnails();};q('g3-open').onclick=openPreview;q('g3-position').oninput=e=>{choose(Number(e.target.value));thumbnails();};q('g3-auto').onclick=()=>setAuto(!autoTimer);
+  q('g3-preview-close').onclick=()=>q('g3-preview').close();q('g3-preview-prev').onclick=()=>{choose(index-1);openPreview();};q('g3-preview-next').onclick=()=>{choose(index+1);openPreview();};
+  view.addEventListener('keydown',e=>{if(!active||q('g3-preview').open||e.target.matches('input,select,textarea'))return;const moves={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1};if(e.key in moves){e.preventDefault();choose(index+moves[e.key]);thumbnails();}else if(e.key==='Home'||e.key==='End'){e.preventDefault();choose(e.key==='Home'?0:list.length-1);thumbnails();}else if(e.key==='Escape'){e.preventDefault();setCategory(data.categoryId);}});
+  stage.addEventListener('wheel',e=>{if(!active||e.ctrlKey)return;e.preventDefault();wheelAmount+=e.deltaY*(e.deltaMode===1?16:1)+e.deltaX;const now=performance.now();if(Math.abs(wheelAmount)>30&&now-lastWheel>170){choose(index+Math.sign(wheelAmount));thumbnails();lastWheel=now;wheelAmount=0;}},{passive:false});
+  stage.addEventListener('pointerdown',e=>{if(!active||e.button!==0||e.target.closest('.g3-rail'))return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,delta:0};});
+  stage.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=drag.x-e.clientX,dy=e.clientY-drag.y;drag.delta=dx+dy*.6;if(Math.abs(dx)>10){stage.classList.add('dragging');stage.setPointerCapture(e.pointerId);setAuto(false);draw(-drag.delta/180);}});
+  function endDrag(e,cancel=false){if(!drag||drag.id!==e.pointerId)return;const moved=stage.classList.contains('dragging'),delta=drag.delta;drag=null;stage.classList.remove('dragging');if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);if(moved){suppressClick=true;setTimeout(()=>suppressClick=false,50);choose(index+(cancel?0:Math.abs(delta)>35?Math.sign(delta)*Math.min(3,Math.max(1,Math.round(Math.abs(delta)/160))):0));thumbnails();}}
+  window.addEventListener('pointerup',e=>endDrag(e));stage.addEventListener('pointercancel',e=>endDrag(e,true));stage.addEventListener('dragstart',e=>e.preventDefault());
+  q('g3-preview').addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();choose(index+(e.key==='ArrowLeft'?-1:1));openPreview();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)setAuto(false);});reduced.addEventListener('change',()=>{if(reduced.matches)setAuto(false);});new MutationObserver(()=>{if(document.body.classList.contains('motion-off'))setAuto(false);}).observe(document.body,{attributes:true,attributeFilter:['class']});new ResizeObserver(()=>{if(active)draw();}).observe(stage);
+  window.SeerGallery3D={open,get state(){return{active,index,total:list.length,mode:q('g3-source').value,auto:Boolean(autoTimer),rendered:nodes.size}}};
+})();
