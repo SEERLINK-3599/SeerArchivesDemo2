@@ -1,10 +1,11 @@
 (() => {
   'use strict';
   const data=window.GALLERY3D_DATA,view=document.querySelector('#gallery3d-view'),stage=document.querySelector('#g3-stage'),deck=document.querySelector('#g3-deck'),rail=document.querySelector('#g3-rail');
+  const script=document.querySelector('script[src*="gallery3d.js"]'),assetBase=new URL('./',script?.src||location.href);
   const q=id=>document.getElementById(id),reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const bundled=new Map(data.images.map(i=>[i.id,i])),nodes=new Map();let list=data.images,index=0,active=false,initialized=false,autoTimer=null,lastWheel=0,wheelAmount=0,drag=null,suppressClick=false;
   const title=i=>typeof theme!=='undefined'?(theme.items[i.id]?.title||i.title):i.title;
-  const src=i=>{const value=bundled.get(i.id)?.src||('file:'===location.protocol?window.SeerFallback.url:'/library/'+i.id);try{return new URL(value,document.baseURI).href;}catch{return value;}};
+  const src=i=>{const value=bundled.get(i.id)?.src||('file:'===location.protocol?window.SeerFallback.url:'/library/'+i.id);try{return new URL(value,assetBase).href;}catch{return value;}};
   const number=n=>String(n+1).padStart(3,'0');
   function setAuto(on){clearInterval(autoTimer);autoTimer=null;if(on&&!reduced.matches&&!document.body.classList.contains('motion-off'))autoTimer=setInterval(()=>choose((index+1)%list.length,false),2400);q('g3-auto').textContent=autoTimer?'暂停自动浏览':'自动浏览';q('g3-auto').setAttribute('aria-pressed',String(Boolean(autoTimer)));}
   function draw(offset=0){

@@ -1,12 +1,15 @@
 (() => {
   'use strict';
   const root=document.documentElement,screen=document.querySelector('#opening'),video=document.querySelector('#opening-video'),shell=document.querySelector('.shell');
+  const openingScript=document.querySelector('script[src*="opening.js"]'),assetBase=new URL('./',openingScript?.src||location.href);
   const status=document.querySelector('#opening-status'),skip=document.querySelector('#opening-skip'),sound=document.querySelector('#opening-sound'),play=document.querySelector('#opening-play');
   const frame=document.querySelector('#opening-frame'),flash=document.querySelector('#opening-flash');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const staticDemo=Boolean(window.SEER_STATIC);
   let phase='loading',ending=false,entered=false,entranceCount=0,autoCount=0,pausedForVisibility=false,lastProgress=performance.now(),lastTime=0,hasFadedIn=false,endTimer=null;
   let siteReadyResolve;const siteReady=new Promise(resolve=>{siteReadyResolve=resolve});
-  const readyTimer=setTimeout(()=>siteReadyResolve(),9500);
+  const readyGate=staticDemo?Promise.race([siteReady,new Promise(resolve=>setTimeout(resolve,250))]):siteReady;
+  const readyTimer=setTimeout(()=>siteReadyResolve(),staticDemo?2000:9500);
   window.addEventListener('seer:ready',()=>{clearTimeout(readyTimer);siteReadyResolve();},{once:true});
   const setPhase=value=>{phase=value;screen.dataset.phase=value;root.dataset.openingPhase=value;window.dispatchEvent(new CustomEvent('seer:opening-phase',{detail:value}));};
   const animate=(el,keyframes,options)=>el.animate(keyframes,{fill:'both',...options});
@@ -47,7 +50,7 @@
     frame.hidden=true;flash.hidden=true;screen.hidden=true;animations.forEach(a=>a.cancel());frame.replaceChildren();
   }
   async function finish(reason='ended',instant=false){
-    if(root.classList.contains('link-locked')||ending||entered)return;ending=true;clearInterval(watchdog);clearTimeout(endTimer);video.pause();status.textContent='正在打开档案馆';await siteReady;
+    if(root.classList.contains('link-locked')||ending||entered)return;ending=true;clearInterval(watchdog);clearTimeout(endTimer);clearTimeout(staticAutoTimer);video.pause();status.textContent='正在打开档案馆';await readyGate;
     setPhase('transition');if(!instant&&!reduced.matches)await transition();
     entered=true;screen.hidden=true;frame.hidden=true;flash.hidden=true;video.removeAttribute('src');video.load();shell.inert=false;
     root.classList.remove('intro-pending');setPhase('entered');if(!instant&&!reduced.matches){const reveal=animate(shell,[{opacity:0},{opacity:1}],{duration:480,easing:'ease-out'});reveal.finished.then(()=>reveal.cancel()).catch(()=>{});}entrance();
@@ -73,6 +76,6 @@
   reduced.addEventListener('change',()=>{if(reduced.matches)finish('reduced-motion',true);});
   const watchdog=setInterval(()=>{if(!root.classList.contains('link-locked')&&!document.hidden&&!ending&&play.hidden&&performance.now()-lastProgress>10000)finish('timeout',true);},500);
   window.SeerOpening={replayEntrance:()=>entrance(true),get state(){return{phase,entered,entranceCount,autoCount}}};
-  let begun=false;function begin(){if(begun)return;begun=true;lastProgress=performance.now();if(reduced.matches)finish('reduced-motion',true);else{video.src='intro/opening.mp4';scheduleVideoFinish();startPlayback();}}
+  let staticAutoTimer=null;let begun=false;function begin(){if(begun)return;begun=true;lastProgress=performance.now();if(staticDemo)staticAutoTimer=setTimeout(()=>finish('static-timeout'),2000);if(reduced.matches)finish('reduced-motion',true);else{video.src=new URL('intro/opening.mp4',assetBase).href;scheduleVideoFinish();startPlayback();}}
   if(root.classList.contains('link-locked'))window.addEventListener('seer:link-unlocked',begin,{once:true});else begin();
 })();
