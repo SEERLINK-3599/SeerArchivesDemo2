@@ -7,7 +7,7 @@
   const title=i=>typeof theme!=='undefined'?(theme.items[i.id]?.title||i.title):i.title;
   const resolve=value=>{try{return new URL(value,assetBase).href;}catch{return value;}};
   const src=i=>resolve(bundled.get(i.id)?.src||('file:'===location.protocol?window.SeerFallback.url:'/library/'+i.id));
-  const thumbSrc=i=>resolve(bundled.get(i.id)?.thumb||bundled.get(i.id)?.src||('file:'===location.protocol?window.SeerFallback.url:'/library/'+i.id));
+  const thumbSrc=i=>bundled.get(i.id)?.thumbData||resolve(bundled.get(i.id)?.thumb||bundled.get(i.id)?.src||('file:'===location.protocol?window.SeerFallback.url:'/library/'+i.id));
   const number=n=>String(n+1).padStart(3,'0');
   function setAuto(on){clearInterval(autoTimer);autoTimer=null;if(on&&!reduced.matches&&!document.body.classList.contains('motion-off'))autoTimer=setInterval(()=>choose((index+1)%list.length,false),2400);q('g3-auto').textContent=autoTimer?'暂停自动浏览':'自动浏览';q('g3-auto').setAttribute('aria-pressed',String(Boolean(autoTimer)));}
   function draw(offset=0){
