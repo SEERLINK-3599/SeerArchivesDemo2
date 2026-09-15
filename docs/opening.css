@@ -1,4 +1,4 @@
-/* The opening is independent of saved themes; never mutate user-data. */
+/* 赛尔档案馆开场独立于保存主题，不修改用户主题数据。 */
 html.intro-pending{overflow:hidden}html.intro-pending .shell{pointer-events:none;visibility:hidden}
 html.intro-pending .shell *,html.intro-pending .shell *::before,html.intro-pending .shell *::after{animation:none!important;transition:none!important}
 html.opening-managed .hero-content,html.opening-managed .view,html.opening-managed .card{animation:none!important}

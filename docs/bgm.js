@@ -18,7 +18,7 @@
  window.addEventListener('seer:opening-phase',e=>{if(e.detail==='entered')requestAutoPlay();});
  window.addEventListener('seer:link-unlocked',()=>{if(audio.paused){autoAttempted=false;requestAutoPlay();}});
  audio.addEventListener('play',player);audio.addEventListener('pause',player);audio.addEventListener('ended',()=>step(1));audio.addEventListener('error',()=>{if(!currentId)return;failed.add(currentId);audio.pause();q('bgm-message').textContent='当前曲目不可用，可选择下一首';player();});
- // Keep the user's video audible without simultaneously mixing the site's BGM.
+ // 开场视频保持原声；赛尔档案馆 BGM 在转场完成后再接管播放。
  document.addEventListener('play',e=>{if(e.target.tagName==='VIDEO'&&!e.target.muted&&!audio.paused){audio.pause();q('bgm-message').textContent='视频播放中，BGM 已暂停';}},true);
  window.addEventListener('beforeunload',e=>{if(dirty()){e.preventDefault();e.returnValue='';}});
  async function boot(){if(editable){try{const r=await fetch('/api/bgm',{signal:AbortSignal.timeout(8000)}),value=await r.json();if(!r.ok)throw Error(value.error);settings=value.settings;}catch(e){editable=false;q('bgm-message').textContent='未读取保存设置，使用内置曲目';}}draft=structuredClone(settings);audio.volume=settings.volume;ready=true;render();player();if(document.documentElement.dataset.openingPhase==='entered')requestAutoPlay();}

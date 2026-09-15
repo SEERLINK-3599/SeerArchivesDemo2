@@ -19,13 +19,13 @@
     const visibleView=document.querySelector('.view:not([hidden])');if(visibleView)nodes.push(visibleView.querySelector('.filter-layout')||visibleView.querySelector('.section-title'));
     for(const [i,el]of nodes.filter(Boolean).entries())animate(el,[{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)'}],{duration:580,delay:i*60,easing:'cubic-bezier(.2,.7,.25,1)'}).finished.then(()=>el.getAnimations().filter(a=>a.playState==='finished').forEach(a=>a.cancel()));
     if(visibleView)for(const [i,el]of [...visibleView.querySelectorAll('.card,.folder-card')].entries()){
-      // Animate only tiles currently in the viewport; never leave a delayed offscreen tile hidden.
+      // 只为当前视口中的方格制作动效，避免离屏档案格长期保持隐藏。
       if(el.getBoundingClientRect().top>=innerHeight)continue;
       const animation=animate(el,[{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'translateY(0)'}],{duration:650,delay:180+Math.min(i,9)*45,easing:'cubic-bezier(.2,.7,.25,1)'});animation.finished.then(()=>animation.cancel());
     }
     window.dispatchEvent(new CustomEvent('seer:entrance',{detail:{manual,count:entranceCount}}));
   }
-  // Dense square tiles travel from the centre outwards, with soft opacity envelopes.
+  // 密集方格从中心向外扩散，并通过柔和透明度完成赛尔档案馆转场。
   async function transition(){
     const duration=1500,columns=innerWidth<=700?12:30,size=innerWidth/columns,rows=Math.ceil(innerHeight/size);
     frame.replaceChildren();frame.style.setProperty('--tile-size',size+'px');frame.style.gridTemplateColumns='repeat('+columns+',1fr)';frame.dataset.tileCount=String(columns*rows);frame.hidden=false;flash.hidden=false;

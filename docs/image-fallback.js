@@ -8,14 +8,14 @@
       const source=img.getAttribute('src');if(!source)return;
       if(img.src!==absolute)tracked.set(img,{source,alt:img.alt,title:img.title});
       img.onerror=()=>{
-        // If the built-in asset is also unavailable, stop here rather than retrying forever.
+        // 内置兜底图也不可用时停止重试，避免档案卡片进入无限循环。
         if(img.src===absolute){img.onerror=null;return;}
         const original=tracked.get(img)||{source:img.getAttribute('src'),alt:img.alt,title:img.title};tracked.set(img,original);
         img.classList.remove('unavailable');img.classList.add('fallback-image');
         img.alt=(original.alt||'图片')+'（原图片不可用，显示内置替代图）';img.title='原图片无法读取，当前显示网站内置替代图';img.src=url;
       };
       img.onload=()=>{if(img.src!==absolute){img.classList.remove('fallback-image','unavailable');const original=tracked.get(img);if(img.title==='原图片无法读取，当前显示网站内置替代图')img.title=original?.title||'';}};
-      // Cached failures can precede handler installation when switching views.
+      // 切换档案视图时，缓存中的失败记录可能早于处理器安装到达。
       if(img.complete&&img.naturalWidth===0)img.onerror();
     });
   }
